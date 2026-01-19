@@ -2,13 +2,33 @@ package openmateo
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"time"
 )
 
 type baseClient struct {
 	httpClient *http.Client
+}
+
+func (bc *baseClient) doRequest(url string) ([]byte, error) {
+	resp, err := bc.httpClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to GET URL: %s: %w", url, err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API returned non-OK status: %s", resp.Status)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to read the response body: %w", err)
+	}
+
+	return data, nil
 }
 
 // GEOCODING CLIENT
