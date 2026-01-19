@@ -36,7 +36,7 @@ type ForecastClient struct {
 	BaseURL string
 }
 
-func NewForecastClient() *GeocodingClient {
+func NewForecastClient() *ForecastClient {
 	return &ForecastClient{
 		baseClient: &baseClient{
 			httpClient: &http.Client{Timeout: 3 * time.Second},
@@ -53,7 +53,7 @@ type AirQualityClient struct {
 	BaseURL string
 }
 
-func NewAirQualityClient() *GeocodingClient {
+func NewAirQualityClient() *AirQualityClient {
 	return &AirQualityClient{
 		baseClient: &baseClient{
 			httpClient: &http.Client{Timeout: 3 * time.Second},
