@@ -33,7 +33,7 @@ go.work.sum
  .vscode/
 
 # Custom
-sky
+/sky
 bin/
 build/
 .DS_Store
