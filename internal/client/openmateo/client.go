@@ -47,3 +47,17 @@ func NewForecastClient() *GeocodingClient {
 
 // AIR-QUALITY CLIENT
 const airQualityBaseURL = "https://air-quality-api.open-meteo.com/v1/"
+
+type AirQualityClient struct {
+	*baseClient
+	BaseURL string
+}
+
+func NewAirQualityClient() *GeocodingClient {
+	return &AirQualityClient{
+		baseClient: &baseClient{
+			httpClient: &http.Client{Timeout: 3 * time.Second},
+		},
+		BaseURL: airQualityBaseURL,
+	}
+}
