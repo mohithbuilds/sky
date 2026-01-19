@@ -27,6 +27,13 @@ go.work.sum
 # env file
 .env
 
+# use nvim lol
 # Editor/IDE
-# .idea/
-# .vscode/
+ .idea/
+ .vscode/
+
+# Custom
+sky
+bin/
+build/
+.DS_Store
