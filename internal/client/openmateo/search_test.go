@@ -21,7 +21,7 @@ func TestSearch(t *testing.T) {
 
 		// Send response to be tested
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `{
+		_, _ = fmt.Fprintln(w, `{
 			"results": [
 				{
 					"id": 2950159,
@@ -64,7 +64,7 @@ func TestSearch(t *testing.T) {
 func TestSearch_NoLocationFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `{"results": []}`) // Empty results array
+		_, _ = fmt.Fprintln(w, `{"results": []}`) // Empty results array
 	}))
 	defer server.Close()
 
@@ -87,7 +87,7 @@ func TestSearch_APIError(t *testing.T) {
 		w.WriteHeader(
 			http.StatusInternalServerError,
 		) // Simulate a 500 Internal Server Error
-		fmt.Fprintln(
+		_, _ = fmt.Fprintln(
 			w,
 			`{"error": true, "reason": "Internal Server Error"}`,
 		) // Provide a response body
@@ -111,7 +111,7 @@ func TestSearch_APIError(t *testing.T) {
 func TestSearch_MalformedJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, `this is not valid json`) // Malformed JSON response
+		_, _ = fmt.Fprintln(w, `this is not valid json`) // Malformed JSON response
 	}))
 	defer server.Close()
 

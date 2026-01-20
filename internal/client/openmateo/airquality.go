@@ -7,7 +7,7 @@ import (
 )
 
 // Only extracting the wanted parts of the air quality API response
-type Result struct {
+type AirQualityResult struct {
 	GenerationTimeMs float64     `json:"generationtime_ms"`
 	Hourly           Hourly      `json:"hourly"`
 	HourlyUnits      HourlyUnits `json:"hourly_units"`
@@ -18,7 +18,7 @@ type Result struct {
 type Hourly struct {
 	Time                []string  `json:"time,omitempty"`
 	PM10                []float64 `json:"pm10,omitempty"`
-	PM2_5               []float64 `json:"pm2_5,omitempty"`
+	PM25                []float64 `json:"pm2_5,omitempty"`
 	CarbonMonoxide      []float64 `json:"carbon_monoxide,omitempty"`
 	NitrogenDioxide     []float64 `json:"nitrogen_dioxide,omitempty"`
 	SulphurDioxide      []float64 `json:"sulphur_dioxide,omitempty"`
@@ -38,7 +38,7 @@ type Hourly struct {
 type HourlyUnits struct {
 	Time                string `json:"time,omitempty"`
 	PM10                string `json:"pm10,omitempty"`
-	PM2_5               string `json:"pm2_5,omitempty"`
+	PM25                string `json:"pm2_5,omitempty"`
 	CarbonMonoxide      string `json:"carbon_monoxide,omitempty"`
 	NitrogenDioxide     string `json:"nitrogen_dioxide,omitempty"`
 	SulphurDioxide      string `json:"sulphur_dioxide,omitempty"`
@@ -54,10 +54,14 @@ type HourlyUnits struct {
 	RagweedPollen       string `json:"ragweed_pollen,omitempty"`
 }
 
+// GetAirQuality fetches air quality data for a given latitude and longitude.
+// It takes latitude, longitude, and a slice of hourly air quality parameters as input.
+// If the hourlyAirQualityParameters slice is empty, it defaults to fetching PM10 and PM2.5 data.
+// It returns an AirQualityResult pointer or an error if the request fails or the data cannot be unmarshaled.
 func (aqc *AirQualityClient) GetAirQuality(
-	longitude, latitude float64,
+	latitude, longitude float64,
 	hourlyAirQualityParameters []string,
-) (*Result, error) {
+) (*AirQualityResult, error) {
 	if len(hourlyAirQualityParameters) == 0 {
 		hourlyAirQualityParameters = []string{"pm10", "pm2_5"}
 	}
@@ -74,7 +78,7 @@ func (aqc *AirQualityClient) GetAirQuality(
 		return nil, fmt.Errorf("failed to get air quality data: %w", err)
 	}
 
-	var result Result
+	var result AirQualityResult
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal air quality data: %w", err)
 	}
