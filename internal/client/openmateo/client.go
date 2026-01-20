@@ -1,11 +1,17 @@
 package openmateo
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 )
+
+type APIError struct {
+	Error  bool   `json:"error"`
+	Reason string `json:"reason"`
+}
 
 type baseClient struct {
 	httpClient *http.Client
@@ -19,13 +25,23 @@ func (bc *baseClient) doRequest(url string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned non-OK status: %s", resp.Status)
-	}
-
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read the response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var apiErr APIError
+
+		if json.Unmarshal(data, &apiErr) == nil && apiErr.Error {
+			return nil, fmt.Errorf("API error (%s): %s", resp.Status, apiErr.Reason)
+		}
+
+		return nil, fmt.Errorf(
+			"API returned non-OK status: %s, body: %s",
+			resp.Status,
+			string(data),
+		)
 	}
 
 	return data, nil
@@ -39,10 +55,13 @@ type GeocodingClient struct {
 	BaseURL string
 }
 
-func NewGeocodingClient() *GeocodingClient {
+func NewGeocodingClient(httpClient *http.Client) *GeocodingClient {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 3 * time.Second}
+	}
 	return &GeocodingClient{
 		baseClient: &baseClient{
-			httpClient: &http.Client{Timeout: 3 * time.Second},
+			httpClient: httpClient,
 		},
 		BaseURL: geocodingBaseURL,
 	}
@@ -56,10 +75,13 @@ type ForecastClient struct {
 	BaseURL string
 }
 
-func NewForecastClient() *ForecastClient {
+func NewForecastClient(httpClient *http.Client) *ForecastClient {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 3 * time.Second}
+	}
 	return &ForecastClient{
 		baseClient: &baseClient{
-			httpClient: &http.Client{Timeout: 3 * time.Second},
+			httpClient: httpClient,
 		},
 		BaseURL: forecastBaseURL,
 	}
@@ -73,10 +95,13 @@ type AirQualityClient struct {
 	BaseURL string
 }
 
-func NewAirQualityClient() *AirQualityClient {
+func NewAirQualityClient(httpClient *http.Client) *AirQualityClient {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 3 * time.Second}
+	}
 	return &AirQualityClient{
 		baseClient: &baseClient{
-			httpClient: &http.Client{Timeout: 3 * time.Second},
+			httpClient: httpClient,
 		},
 		BaseURL: airQualityBaseURL,
 	}
