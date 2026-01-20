@@ -13,8 +13,8 @@ type AirQualityResult struct {
 	HourlyUnits      HourlyUnits `json:"hourly_units"`
 }
 
-// Hourly contains the time-series data for each hourly air quality parameter
-// Pollen only available for Europe
+// Hourly contains the time-series data for each hourly air quality parameter.
+// Note: Pollen data fields are only available for European locations.
 type Hourly struct {
 	Time                []string  `json:"time,omitempty"`
 	PM10                []float64 `json:"pm10,omitempty"`
