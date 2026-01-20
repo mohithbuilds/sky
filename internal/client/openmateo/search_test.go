@@ -53,6 +53,9 @@ func TestSearch(t *testing.T) {
 	if location.Latitude != 52.52437 {
 		t.Errorf("Expected latitude 52.52437, got '%f'", location.Latitude)
 	}
+	if location.Longitude != 13.41053 {
+		t.Errorf("Expected longitude 13.41053, got '%f'", location.Longitude)
+	}
 	if location.ID != 2950159 {
 		t.Errorf("Expected ID 2950159, got '%d'", location.ID)
 	}
