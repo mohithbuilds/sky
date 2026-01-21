@@ -39,3 +39,7 @@ This is my first actual project with Go, so will be iterating. But right now the
 * **`/scripts`**: A place for shell scripts for building, installing, or other automation.
 * **`go.mod` and `go.sum`**: These files are essential for managing the project's dependencies.
 * **`README.md`**: A good `README.md` is crucial for any project. File to explain what the project does and how to use it.
+
+## Weather Forecast Client Vision
+
+The `GetWeather` function in the `openmateo` client is designed to be a base getter. More specific weather retrieval functions (wrappers) should be built on top of it, abstracting away the details of parameter selection for current, hourly, and daily forecasts, and potentially adding support for past days, forecast days, and specific temperature/precipitation units.

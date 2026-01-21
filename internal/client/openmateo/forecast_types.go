@@ -1,19 +1,19 @@
 package openmateo
 
 // Only extracting the wanted parts of the forecast API response
-// Also we have the option for current vs hourly (forecast)
 type ForecastResult struct {
 	GenerationTimeMs float64              `json:"generationtime_ms"`
 	Timezone         string               `json:"timezone"`
 	Elevation        float64              `json:"elevation"`
-	Current          ForecastCurrent      `json:"current,omitempty"`
-	CurrentUnits     ForecastCurrentUnits `json:"current_units,omitempty"`
-	Hourly           ForecastHourly       `json:"hourly,omitempty"`
-	HourlyUnits      ForecastHourlyUnits  `json:"hourly_units,omitempty"`
-	Daily            ForecastDaily        `json:"daily,omitempty"`
-	DailyUnits       ForecastDailyUnits   `json:"daily_units,omitempty"`
+	Current          ForecastCurrent      `json:"current"`
+	CurrentUnits     ForecastCurrentUnits `json:"current_units"`
+	Hourly           ForecastHourly       `json:"hourly"`
+	HourlyUnits      ForecastHourlyUnits  `json:"hourly_units"`
+	Daily            ForecastDaily        `json:"daily"`
+	DailyUnits       ForecastDailyUnits   `json:"daily_units"`
 }
 
+// ForecastCurrent holds the current weather conditions.
 type ForecastCurrent struct {
 	Time                string  `json:"time"`
 	Temperature2m       float64 `json:"temperature_2m"`
@@ -27,6 +27,7 @@ type ForecastCurrent struct {
 	ApparentTemperature float64 `json:"apparent_temperature"`
 }
 
+// ForecastCurrentUnits holds the units for the current weather conditions.
 type ForecastCurrentUnits struct {
 	Time                string `json:"time"`
 	Temperature2m       string `json:"temperature_2m"`
@@ -40,6 +41,7 @@ type ForecastCurrentUnits struct {
 	ApparentTemperature string `json:"apparent_temperature"`
 }
 
+// ForecastHourly holds the time-series data for the hourly forecast.
 type ForecastHourly struct {
 	Time                     []string  `json:"time"`
 	Temperature2m            []float64 `json:"temperature_2m"`
@@ -56,6 +58,7 @@ type ForecastHourly struct {
 	IsDay                    []int     `json:"is_day"`
 }
 
+// ForecastHourlyUnits holds the units for the hourly forecast data.
 type ForecastHourlyUnits struct {
 	Time                     string `json:"time"`
 	Temperature2m            string `json:"temperature_2m"`
@@ -72,6 +75,7 @@ type ForecastHourlyUnits struct {
 	IsDay                    string `json:"is_day"`
 }
 
+// ForecastDaily holds the time-series data for the daily forecast.
 type ForecastDaily struct {
 	Time                         []string  `json:"time"`
 	Temperature2mMax             []float64 `json:"temperature_2m_max"`
@@ -88,6 +92,7 @@ type ForecastDaily struct {
 	ApparentTemperatureMin       []float64 `json:"apparent_temperature_min"`
 }
 
+// ForecastDailyUnits holds the units for the daily forecast data.
 type ForecastDailyUnits struct {
 	Time                         string `json:"time"`
 	Temperature2mMax             string `json:"temperature_2m_max"`
