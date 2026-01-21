@@ -16,42 +16,42 @@ type AirQualityResult struct {
 // Hourly contains the time-series data for each hourly air quality parameter.
 // Note: Pollen data fields are only available for European locations.
 type AirQualityHourly struct {
-	Time                []string  `json:"time,omitempty"`
-	PM10                []float64 `json:"pm10,omitempty"`
-	PM25                []float64 `json:"pm2_5,omitempty"`
-	CarbonMonoxide      []float64 `json:"carbon_monoxide,omitempty"`
-	NitrogenDioxide     []float64 `json:"nitrogen_dioxide,omitempty"`
-	SulphurDioxide      []float64 `json:"sulphur_dioxide,omitempty"`
-	Ozone               []float64 `json:"ozone,omitempty"`
-	AerosolOpticalDepth []float64 `json:"aerosol_optical_depth,omitempty"`
-	Dust                []float64 `json:"dust,omitempty"`
-	UVIndex             []float64 `json:"uv_index,omitempty"`
-	AlderPollen         []float64 `json:"alder_pollen,omitempty"`
-	BirchPollen         []float64 `json:"birch_pollen,omitempty"`
-	GrassPollen         []float64 `json:"grass_pollen,omitempty"`
-	MugwortPollen       []float64 `json:"mugwort_pollen,omitempty"`
-	OlivePollen         []float64 `json:"olive_pollen,omitempty"`
-	RagweedPollen       []float64 `json:"ragweed_pollen,omitempty"`
+	Time                []string  `json:"time"`
+	PM10                []float64 `json:"pm10"`
+	PM25                []float64 `json:"pm2_5"`
+	CarbonMonoxide      []float64 `json:"carbon_monoxide"`
+	NitrogenDioxide     []float64 `json:"nitrogen_dioxide"`
+	SulphurDioxide      []float64 `json:"sulphur_dioxide"`
+	Ozone               []float64 `json:"ozone"`
+	AerosolOpticalDepth []float64 `json:"aerosol_optical_depth"`
+	Dust                []float64 `json:"dust"`
+	UVIndex             []float64 `json:"uv_index"`
+	AlderPollen         []float64 `json:"alder_pollen"`
+	BirchPollen         []float64 `json:"birch_pollen"`
+	GrassPollen         []float64 `json:"grass_pollen"`
+	MugwortPollen       []float64 `json:"mugwort_pollen"`
+	OlivePollen         []float64 `json:"olive_pollen"`
+	RagweedPollen       []float64 `json:"ragweed_pollen"`
 }
 
 // HourlyUnits contains the units for each hourly air quality parameter
 type AirQualityHourlyUnits struct {
-	Time                string `json:"time,omitempty"`
-	PM10                string `json:"pm10,omitempty"`
-	PM25                string `json:"pm2_5,omitempty"`
-	CarbonMonoxide      string `json:"carbon_monoxide,omitempty"`
-	NitrogenDioxide     string `json:"nitrogen_dioxide,omitempty"`
-	SulphurDioxide      string `json:"sulphur_dioxide,omitempty"`
-	Ozone               string `json:"ozone,omitempty"`
-	AerosolOpticalDepth string `json:"aerosol_optical_depth,omitempty"`
-	Dust                string `json:"dust,omitempty"`
-	UVIndex             string `json:"uv_index,omitempty"`
-	AlderPollen         string `json:"alder_pollen,omitempty"`
-	BirchPollen         string `json:"birch_pollen,omitempty"`
-	GrassPollen         string `json:"grass_pollen,omitempty"`
-	MugwortPollen       string `json:"mugwort_pollen,omitempty"`
-	OlivePollen         string `json:"olive_pollen,omitempty"`
-	RagweedPollen       string `json:"ragweed_pollen,omitempty"`
+	Time                string `json:"time"`
+	PM10                string `json:"pm10"`
+	PM25                string `json:"pm2_5"`
+	CarbonMonoxide      string `json:"carbon_monoxide"`
+	NitrogenDioxide     string `json:"nitrogen_dioxide"`
+	SulphurDioxide      string `json:"sulphur_dioxide"`
+	Ozone               string `json:"ozone"`
+	AerosolOpticalDepth string `json:"aerosol_optical_depth"`
+	Dust                string `json:"dust"`
+	UVIndex             string `json:"uv_index"`
+	AlderPollen         string `json:"alder_pollen"`
+	BirchPollen         string `json:"birch_pollen"`
+	GrassPollen         string `json:"grass_pollen"`
+	MugwortPollen       string `json:"mugwort_pollen"`
+	OlivePollen         string `json:"olive_pollen"`
+	RagweedPollen       string `json:"ragweed_pollen"`
 }
 
 // GetAirQuality fetches air quality data for a given latitude and longitude.

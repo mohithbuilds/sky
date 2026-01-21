@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// I also want to think about getting past days, forecast days, temperature unit, and precipitation unit
-// Vision for this is to be the base getter and then have a bunch of wrappers that wrap this
+// TODO(sky): Add support for past_days, forecast_days, temperature_unit, and precipitation_unit parameters.
+// The vision for this function is to be the base getter, with more specific wrapper functions built on top of it.
 func (fc *ForecastClient) GetWeather(
 	latitude, longitude float64,
 	currentParameters []string,
