@@ -8,14 +8,14 @@ import (
 
 // Only extracting the wanted parts of the air quality API response
 type AirQualityResult struct {
-	GenerationTimeMs float64     `json:"generationtime_ms"`
-	Hourly           Hourly      `json:"hourly"`
-	HourlyUnits      HourlyUnits `json:"hourly_units"`
+	GenerationTimeMs float64               `json:"generationtime_ms"`
+	Hourly           AirQualityHourly      `json:"hourly"`
+	HourlyUnits      AirQualityHourlyUnits `json:"hourly_units"`
 }
 
 // Hourly contains the time-series data for each hourly air quality parameter.
 // Note: Pollen data fields are only available for European locations.
-type Hourly struct {
+type AirQualityHourly struct {
 	Time                []string  `json:"time,omitempty"`
 	PM10                []float64 `json:"pm10,omitempty"`
 	PM25                []float64 `json:"pm2_5,omitempty"`
@@ -35,7 +35,7 @@ type Hourly struct {
 }
 
 // HourlyUnits contains the units for each hourly air quality parameter
-type HourlyUnits struct {
+type AirQualityHourlyUnits struct {
 	Time                string `json:"time,omitempty"`
 	PM10                string `json:"pm10,omitempty"`
 	PM25                string `json:"pm2_5,omitempty"`
