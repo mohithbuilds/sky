@@ -50,11 +50,11 @@ func TestGetAirQuality_Success(t *testing.T) {
 
 	expectedResult := &AirQualityResult{
 		GenerationTimeMs: 0.2,
-		Hourly: Hourly{
+		Hourly: AirQualityHourly{
 			Time: []string{"2023-01-01T00:00"},
 			PM25: []float64{8.0},
 		},
-		HourlyUnits: HourlyUnits{
+		HourlyUnits: AirQualityHourlyUnits{
 			Time: "iso8601",
 			PM25: "μg/m³",
 		},
@@ -149,12 +149,12 @@ func TestGetAirQuality_DefaultParameters(t *testing.T) {
 
 	expectedResult := &AirQualityResult{
 		GenerationTimeMs: 0.2,
-		Hourly: Hourly{
-			Time:  []string{"2023-01-01T00:00"},
+		Hourly: AirQualityHourly{
+			Time: []string{"2023-01-01T00:00"},
 			PM10: []float64{10.0},
 			PM25: []float64{8.0},
 		},
-		HourlyUnits: HourlyUnits{
+		HourlyUnits: AirQualityHourlyUnits{
 			Time: "iso8601",
 			PM10: "μg/m³",
 			PM25: "μg/m³",
