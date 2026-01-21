@@ -1,16 +1,18 @@
 package openmateo
 
-// Only extracting the wanted parts of the forecast API response
+// ForecastResult extracts the relevant parts of the forecast API response.
+// It groups the optional forecast sections (current, hourly, daily) that can
+// be selectively requested via API parameters.
 type ForecastResult struct {
-	GenerationTimeMs float64              `json:"generationtime_ms"`
-	Timezone         string               `json:"timezone"`
-	Elevation        float64              `json:"elevation"`
-	Current          ForecastCurrent      `json:"current"`
-	CurrentUnits     ForecastCurrentUnits `json:"current_units"`
-	Hourly           ForecastHourly       `json:"hourly"`
-	HourlyUnits      ForecastHourlyUnits  `json:"hourly_units"`
-	Daily            ForecastDaily        `json:"daily"`
-	DailyUnits       ForecastDailyUnits   `json:"daily_units"`
+	GenerationTimeMs float64               `json:"generationtime_ms"`
+	Timezone         string                `json:"timezone"`
+	Elevation        float64               `json:"elevation"`
+	Current          *ForecastCurrent      `json:"current,omitempty"`
+	CurrentUnits     *ForecastCurrentUnits `json:"current_units,omitempty"`
+	Hourly           *ForecastHourly       `json:"hourly,omitempty"`
+	HourlyUnits      *ForecastHourlyUnits  `json:"hourly_units,omitempty"`
+	Daily            *ForecastDaily        `json:"daily,omitempty"`
+	DailyUnits       *ForecastDailyUnits   `json:"daily_units,omitempty"`
 }
 
 // ForecastCurrent holds the current weather conditions.
