@@ -8,9 +8,9 @@ import (
 
 // Only extracting the wanted parts of the air quality API response
 type AirQualityResult struct {
-	GenerationTimeMs float64               `json:"generationtime_ms"`
-	Hourly           AirQualityHourly      `json:"hourly"`
-	HourlyUnits      AirQualityHourlyUnits `json:"hourly_units"`
+	GenerationTimeMs float64                `json:"generationtime_ms"`
+	Hourly           *AirQualityHourly      `json:"hourly,omitempty"`
+	HourlyUnits      *AirQualityHourlyUnits `json:"hourly_units,omitempty"`
 }
 
 // Hourly contains the time-series data for each hourly air quality parameter.

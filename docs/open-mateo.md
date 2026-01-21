@@ -7,17 +7,17 @@ The API endpoint we are trying to hit: `https://geocoding-api.open-meteo.com/v1/
 The goal of this for sky is to use it to retrieve the latitude and longitude [along with some extra data] for a location that we will be given by the end user.
 - The extra data I'm referring to is elevation, timezone, population, country id, and country code
 
-```
+```go
 type Location struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
-	Elevation   float64 `json:"elevation"`
-	Timezone    string  `json:"timezone"`
-	Population  int     `json:"population"`
-	CountryCode string  `json:"country_code"`
-	Country     string  `json:"country"`
+    ID          int     `json:"id"`
+    Name        string  `json:"name"`
+    Latitude    float64 `json:"latitude"`
+    Longitude   float64 `json:"longitude"`
+    Elevation   float64 `json:"elevation"`
+    Timezone    string  `json:"timezone"`
+    Population  int     `json:"population"`
+    CountryCode string  `json:"country_code"`
+    Country     string  `json:"country"`
 }
 ```
 
