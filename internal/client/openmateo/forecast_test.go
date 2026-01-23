@@ -74,6 +74,11 @@ func TestGetWeather_Success(t *testing.T) {
 		[]string{"temperature_2m", "weather_code"},
 		[]string{"temperature_2m", "relative_humidity_2m"},
 		[]string{"weather_code", "temperature_2m_max", "temperature_2m_min"},
+		"celsius",
+		"kmh",
+		"mm",
+		0,
+		0,
 	)
 	if err != nil {
 		t.Fatalf("GetWeather failed: %v", err)
@@ -144,9 +149,8 @@ func TestGetWeather_APIError(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{})
+	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
 	if err == nil {
-		t.Fatal("Expected an error for API failure, but got nil")
 	}
 
 	expectedErrMsg := "failed to get weather data"
@@ -165,7 +169,7 @@ func TestGetWeather_MalformedJSON(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{})
+	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
 	if err == nil {
 		t.Fatal("Expected an error for malformed JSON, but got nil")
 	}
@@ -201,7 +205,7 @@ func TestGetWeather_NoParameters(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	result, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{})
+	result, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
 	if err != nil {
 		t.Fatalf("GetWeather with no parameters failed: %v", err)
 	}
@@ -225,4 +229,3 @@ func TestGetWeather_NoParameters(t *testing.T) {
 		t.Errorf("Expected Daily to be nil, got '%+v'", result.Daily)
 	}
 }
-

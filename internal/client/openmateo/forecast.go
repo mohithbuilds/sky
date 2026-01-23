@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,11 @@ func (fc *ForecastClient) GetWeather(
 	currentParameters []string,
 	hourlyParameters []string,
 	dailyParameters []string,
+	temperatureUnit string,
+	windSpeedUnit string,
+	precipitationUnit string,
+	pastDays int64,
+	forecastDays int64,
 ) (*ForecastResult, error) {
 	params := url.Values{}
 	params.Add("latitude", fmt.Sprintf("%f", latitude))
@@ -31,6 +37,26 @@ func (fc *ForecastClient) GetWeather(
 
 	if len(dailyParameters) > 0 {
 		params.Add("daily", strings.Join(dailyParameters, ","))
+	}
+
+	if temperatureUnit != "" {
+		params.Add("temperature_unit", temperatureUnit)
+	}
+
+	if windSpeedUnit != "" {
+		params.Add("wind_speed_unit", windSpeedUnit)
+	}
+
+	if precipitationUnit != "" {
+		params.Add("precipitation_unit", precipitationUnit)
+	}
+
+	if pastDays >= 0 {
+		params.Add("past_days", strconv.FormatInt(pastDays, 10))
+	}
+
+	if forecastDays >= 0 {
+		params.Add("forecast_days", strconv.FormatInt(forecastDays, 10))
 	}
 
 	fullURL := fc.BaseURL + "forecast?" + params.Encode()
