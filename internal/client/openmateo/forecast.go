@@ -45,11 +45,11 @@ func (fc *ForecastClient) GetWeather(
 	}
 
 	if windSpeedUnit != "" {
-		params.Add("wind_speed_unit", windSpeedUnit)
+		params.Set("wind_speed_unit", windSpeedUnit)
 	}
 
 	if precipitationUnit != "" {
-		params.Add("precipitation_unit", precipitationUnit)
+		params.Set("precipitation_unit", precipitationUnit)
 	}
 
 	// Enforce combined logic for pastDays and forecastDays.
@@ -59,11 +59,11 @@ func (fc *ForecastClient) GetWeather(
 	}
 
 	if pastDays >= 0 {
-		params.Add("past_days", strconv.FormatInt(pastDays, 10))
+		params.Set("past_days", strconv.FormatInt(pastDays, 10))
 	}
 
 	if forecastDays >= 0 {
-		params.Add("forecast_days", strconv.FormatInt(forecastDays, 10))
+		params.Set("forecast_days", strconv.FormatInt(forecastDays, 10))
 	}
 
 	fullURL := fc.BaseURL + "forecast?" + params.Encode()

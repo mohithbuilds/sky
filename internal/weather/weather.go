@@ -31,8 +31,8 @@ type DailyForecast struct {
 	Sunrise            time.Time
 	Sunset             time.Time
 	PrecipitationSum   float64
-	PrecipitationProb  float64 // Max precipitation probability
-	WindGusts          float64 // Max wind gusts
+	PrecipitationProb  float64 // Mean daily precipitation probability
+	WindGusts          float64 // Max daily 10m wind speed
 }
 
 // ForecastClient is an interface for a client that can fetch weather data.
@@ -114,11 +114,20 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 
 	// Process the raw forecast data into your simplified CurrentWeather struct
 	// You might have a helper function to map weather codes to descriptions
-	weatherDesc := mapWeatherCodeToDescription(forecast.Current.WeatherCode)
-
-	location, err := time.LoadLocation(forecast.Timezone)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load location from timezone: %w", err)
+	// GetCurrentWeather always calls time.LoadLocation(forecast.Timezone). When the API response (or mocks) has an empty Timezone,
+	// LoadLocation("") errors and prevents parsing the timestamp, causing GetCurrentWeather to fail even if the time is RFC3339.
+	// Consider defaulting to time.UTC when forecast.Timezone is empty (or when LoadLocation fails) so callers aren’t forced to have a timezone in the response.
+	var location *time.Location
+	if forecast.Timezone == "" {
+		// Default to UTC when no timezone is provided
+		location = time.UTC
+	} else {
+		var locErr error
+		location, locErr = time.LoadLocation(forecast.Timezone)
+		if locErr != nil {
+			// Fall back to UTC if the provided timezone cannot be loaded
+			location = time.UTC
+		}
 	}
 
 	obsTime, err := time.ParseInLocation(openMeteoLayout, forecast.Current.Time, location)
@@ -130,6 +139,7 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 		}
 	}
 
+	weatherDesc := mapWeatherCodeToDescription(forecast.Current.WeatherCode)
 	current := &CurrentWeather{
 		Temperature:         forecast.Current.Temperature2m,
 		Humidity:            forecast.Current.RelativeHumidity2m,
@@ -219,7 +229,7 @@ func (w *WeatherClient) GetDailyForecast(
 	dailyForecasts := make([]DailyForecast, len(forecast.Daily.Time))
 
 	for i := range forecast.Daily.Time {
-		forecastDate, err := time.Parse("2006-01-02", forecast.Daily.Time[i])
+		forecastDate, err := time.ParseInLocation("2006-01-02", forecast.Daily.Time[i], location)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse forecast date: %w", err)
 		}

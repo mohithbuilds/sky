@@ -39,6 +39,7 @@ func TestGetCurrentWeather_Success(t *testing.T) {
 	mockClient := &mockForecastClient{
 		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
+				Timezone: "UTC",
 				Current: &openmateo.ForecastCurrent{
 					Time:                "2023-01-01T12:00:00Z",
 					Temperature2m:       10.0,
@@ -86,6 +87,7 @@ func TestGetDailyForecast_Success(t *testing.T) {
 	mockClient := &mockForecastClient{
 		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
+				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
 					Time:             []string{"2023-01-01", "2023-01-02"},
 					Temperature2mMax: []float64{12.0, 13.0},
