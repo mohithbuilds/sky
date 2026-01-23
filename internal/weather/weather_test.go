@@ -128,6 +128,7 @@ func TestGetDailyForecast_NumDaysZero(t *testing.T) {
 				t.Errorf("Expected forecastDays to be 1, got %d", forecastDays)
 			}
 			return &openmateo.ForecastResult{
+				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
 					Time:             []string{"2023-01-01"},
 					Temperature2mMax: []float64{12.0},
@@ -163,6 +164,7 @@ func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 				t.Errorf("Expected forecastDays to be 1, got %d", forecastDays)
 			}
 			return &openmateo.ForecastResult{
+				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
 					Time:             []string{"2023-01-01"},
 					Temperature2mMax: []float64{12.0},
