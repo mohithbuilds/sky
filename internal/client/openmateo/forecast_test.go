@@ -151,6 +151,7 @@ func TestGetWeather_APIError(t *testing.T) {
 
 	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
 	if err == nil {
+		t.Fatalf("expected GetWeather to return an error for API 500 response, got nil")
 	}
 
 	expectedErrMsg := "failed to get weather data"
