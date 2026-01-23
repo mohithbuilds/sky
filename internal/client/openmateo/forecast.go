@@ -24,8 +24,7 @@ func (fc *ForecastClient) GetWeather(
 	params := url.Values{}
 	params.Add("latitude", fmt.Sprintf("%f", latitude))
 	params.Add("longitude", fmt.Sprintf("%f", longitude))
-	params.Add("temperature_unit", "celsius") // Default temperature unit
-	params.Add("timezone", "auto")            // Default timezone
+	params.Add("timezone", "auto") // Default timezone
 
 	if len(currentParameters) > 0 {
 		params.Add("current", strings.Join(currentParameters, ","))
@@ -40,7 +39,9 @@ func (fc *ForecastClient) GetWeather(
 	}
 
 	if temperatureUnit != "" {
-		params.Add("temperature_unit", temperatureUnit)
+		params.Set("temperature_unit", temperatureUnit)
+	} else {
+		params.Set("temperature_unit", "celsius")
 	}
 
 	if windSpeedUnit != "" {
@@ -49,6 +50,12 @@ func (fc *ForecastClient) GetWeather(
 
 	if precipitationUnit != "" {
 		params.Add("precipitation_unit", precipitationUnit)
+	}
+
+	// Enforce combined logic for pastDays and forecastDays.
+	// If both are 0, default to 0 past days and 7 forecast days.
+	if pastDays == 0 && forecastDays == 0 {
+		forecastDays = 7
 	}
 
 	if pastDays >= 0 {

@@ -7,6 +7,8 @@ import (
 	"sky/internal/client/openmateo"
 )
 
+const openMeteoLayout = "2006-01-02T15:04"
+
 // CurrentWeather represents the simplified current weather information
 // that your application cares about.
 type CurrentWeather struct {
@@ -114,9 +116,18 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 	// You might have a helper function to map weather codes to descriptions
 	weatherDesc := mapWeatherCodeToDescription(forecast.Current.WeatherCode)
 
-	obsTime, err := time.Parse(time.RFC3339, forecast.Current.Time)
+	location, err := time.LoadLocation(forecast.Timezone)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse observation time: %w", err)
+		return nil, fmt.Errorf("failed to load location from timezone: %w", err)
+	}
+
+	obsTime, err := time.ParseInLocation(openMeteoLayout, forecast.Current.Time, location)
+	if err != nil {
+		// Fallback for full ISO8601 with offset
+		obsTime, err = time.Parse(time.RFC3339, forecast.Current.Time)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse observation time: %w", err)
+		}
 	}
 
 	current := &CurrentWeather{
@@ -179,12 +190,30 @@ func (w *WeatherClient) GetDailyForecast(
 		return nil, fmt.Errorf("daily forecast data is incomplete or missing from API response")
 	}
 
+	// Check that all daily slices have the same length
+	numDaysReturned := len(forecast.Daily.Time)
+	if len(forecast.Daily.Temperature2mMax) != numDaysReturned ||
+		len(forecast.Daily.Temperature2mMin) != numDaysReturned ||
+		len(forecast.Daily.WeatherCode) != numDaysReturned ||
+		len(forecast.Daily.Sunrise) != numDaysReturned ||
+		len(forecast.Daily.Sunset) != numDaysReturned ||
+		len(forecast.Daily.PrecipitationSum) != numDaysReturned ||
+		len(forecast.Daily.PrecipitationProbabilityMean) != numDaysReturned ||
+		len(forecast.Daily.WindSpeed10mMax) != numDaysReturned {
+		return nil, fmt.Errorf("API returned daily forecast data with inconsistent lengths")
+	}
+
 	if len(forecast.Daily.Time) == 0 {
 		return nil, fmt.Errorf(
 			"no daily forecast data returned for %.2f, %.2f",
 			latitude,
 			longitude,
 		)
+	}
+
+	location, err := time.LoadLocation(forecast.Timezone)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load location from timezone: %w", err)
 	}
 
 	dailyForecasts := make([]DailyForecast, len(forecast.Daily.Time))
@@ -195,13 +224,19 @@ func (w *WeatherClient) GetDailyForecast(
 			return nil, fmt.Errorf("failed to parse forecast date: %w", err)
 		}
 
-		sunriseTime, err := time.Parse(time.RFC3339, forecast.Daily.Sunrise[i])
+		sunriseTime, err := time.ParseInLocation(openMeteoLayout, forecast.Daily.Sunrise[i], location)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse sunrise time: %w", err)
+			sunriseTime, err = time.Parse(time.RFC3339, forecast.Daily.Sunrise[i])
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse sunrise time: %w", err)
+			}
 		}
-		sunsetTime, err := time.Parse(time.RFC3339, forecast.Daily.Sunset[i])
+		sunsetTime, err := time.ParseInLocation(openMeteoLayout, forecast.Daily.Sunset[i], location)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse sunset time: %w", err)
+			sunsetTime, err = time.Parse(time.RFC3339, forecast.Daily.Sunset[i])
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse sunset time: %w", err)
+			}
 		}
 
 		dailyForecasts[i] = DailyForecast{
