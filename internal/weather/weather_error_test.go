@@ -6,6 +6,50 @@ import (
 	"testing"
 )
 
+// mockForecastClient is a mock implementation of the ForecastClient interface.
+type mockForecastClient struct {
+	GetWeatherFunc func(
+		latitude, longitude float64,
+		currentParameters []string,
+		hourlyParameters []string,
+		dailyParameters []string,
+		temperatureUnit string,
+		windSpeedUnit string,
+		precipitationUnit string,
+		pastDays int64,
+		forecastDays int64,
+	) (*openmateo.ForecastResult, error)
+}
+
+// GetWeather is the mock implementation of the GetWeather method.
+func (m *mockForecastClient) GetWeather(
+	latitude, longitude float64,
+	currentParameters []string,
+	hourlyParameters []string,
+	dailyParameters []string,
+	temperatureUnit string,
+	windSpeedUnit string,
+	precipitationUnit string,
+	pastDays int64,
+	forecastDays int64,
+) (*openmateo.ForecastResult, error) {
+	if m.GetWeatherFunc != nil {
+		return m.GetWeatherFunc(
+			latitude,
+			longitude,
+			currentParameters,
+			hourlyParameters,
+			dailyParameters,
+			temperatureUnit,
+			windSpeedUnit,
+			precipitationUnit,
+			pastDays,
+			forecastDays,
+		)
+	}
+	return nil, errors.New("GetWeatherFunc is not implemented")
+}
+
 func TestGetCurrentWeather_NilCurrent(t *testing.T) {
 	mockClient := &mockForecastClient{
 		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
@@ -15,8 +59,8 @@ func TestGetCurrentWeather_NilCurrent(t *testing.T) {
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetCurrentWeather(52.52, 13.41)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetCurrentWeather(52.52, 13.41, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for nil current weather data, but got nil")
 	}
@@ -30,12 +74,13 @@ func TestGetCurrentWeather_TimeParseError(t *testing.T) {
 				Current: &openmateo.ForecastCurrent{
 					Time: "invalid-time",
 				},
+				CurrentUnits: &openmateo.ForecastCurrentUnits{},
 			}, nil
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetCurrentWeather(52.52, 13.41)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetCurrentWeather(52.52, 13.41, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for invalid time format, but got nil")
 	}
@@ -50,8 +95,8 @@ func TestGetDailyForecast_NilDaily(t *testing.T) {
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for nil daily weather data, but got nil")
 	}
@@ -63,22 +108,23 @@ func TestGetDailyForecast_TimeParseError(t *testing.T) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
-					Time:             []string{"invalid-time"},
-					Temperature2mMax: []float64{12.0},
-					Temperature2mMin: []float64{2.0},
-					Sunrise:          []string{"2023-01-01T07:00:00Z"},
-					Sunset:           []string{"2023-01-01T17:00:00Z"},
-					PrecipitationSum: []float64{0.1},
+					Time:                         []string{"invalid-time"},
+					Temperature2mMax:             []float64{12.0},
+					Temperature2mMin:             []float64{2.0},
+					Sunrise:                      []string{"2023-01-01T07:00:00Z"},
+					Sunset:                       []string{"2023-01-01T17:00:00Z"},
+					PrecipitationSum:             []float64{0.1},
 					PrecipitationProbabilityMean: []float64{10.0},
-					WeatherCode:      []int{3},
-					WindSpeed10mMax:    []float64{15.0},
+					WeatherCode:                  []int{3},
+					WindSpeed10mMax:              []float64{15.0},
 				},
+				DailyUnits: &openmateo.ForecastDailyUnits{},
 			}, nil
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for invalid daily time format, but got nil")
 	}
@@ -95,8 +141,8 @@ func TestGetDailyForecast_IncompleteData(t *testing.T) {
 			}, nil
 		},
 	}
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for incomplete daily data, but got nil")
 	}
@@ -108,8 +154,8 @@ func TestGetDailyForecast_APIError(t *testing.T) {
 			return nil, errors.New("API error")
 		},
 	}
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for API error, but got nil")
 	}
@@ -120,21 +166,21 @@ func TestGetDailyForecast_InconsistentLengths(t *testing.T) {
 		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Daily: &openmateo.ForecastDaily{
-					Time:             []string{"2023-01-01"},
-					Temperature2mMax: []float64{12.0, 13.0}, // Inconsistent length
-					Temperature2mMin: []float64{2.0},
-					Sunrise:          []string{"2023-01-01T07:00:00Z"},
-					Sunset:           []string{"2023-01-01T17:00:00Z"},
-					PrecipitationSum: []float64{0.1},
+					Time:                         []string{"2023-01-01"},
+					Temperature2mMax:             []float64{12.0, 13.0}, // Inconsistent length
+					Temperature2mMin:             []float64{2.0},
+					Sunrise:                      []string{"2023-01-01T07:00:00Z"},
+					Sunset:                       []string{"2023-01-01T17:00:00Z"},
+					PrecipitationSum:             []float64{0.1},
 					PrecipitationProbabilityMean: []float64{10.0},
-					WeatherCode:      []int{3},
-					WindSpeed10mMax:    []float64{15.0},
+					WeatherCode:                  []int{3},
+					WindSpeed10mMax:              []float64{15.0},
 				},
 			}, nil
 		},
 	}
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1)
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetDailyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
 	if err == nil {
 		t.Fatal("Expected an error for inconsistent daily data lengths, but got nil")
 	}

@@ -9,6 +9,13 @@ import (
 
 const openMeteoLayout = "2006-01-02T15:04"
 
+// Units holds the unit strings for the weather data.
+type Units struct {
+	Temperature   string
+	WindSpeed     string
+	Precipitation string
+}
+
 // CurrentWeather represents the simplified current weather information
 // that your application cares about.
 type CurrentWeather struct {
@@ -20,6 +27,7 @@ type CurrentWeather struct {
 	WeatherDescription  string
 	ObservationTime     time.Time
 	IsDay               int
+	Units               Units
 }
 
 // DailyForecast represents the simplified daily forecast information.
@@ -33,6 +41,7 @@ type DailyForecast struct {
 	PrecipitationSum   float64
 	PrecipitationProb  float64 // Mean daily precipitation probability
 	WindGusts          float64 // Max daily 10m wind speed
+	Units              Units
 }
 
 // ForecastClient is an interface for a client that can fetch weather data.
@@ -53,28 +62,22 @@ type ForecastClient interface {
 // WeatherClient is your application's client for weather-related operations.
 // It composes a ForecastClient.
 type WeatherClient struct {
-	openmateoClient   ForecastClient
-	temperatureUnit   string
-	windSpeedUnit     string
-	precipitationUnit string
+	openmateoClient ForecastClient
 }
 
 // NewWeatherClient creates a new instance of the WeatherClient.
-func NewWeatherClient(
-	fc ForecastClient,
-	tempUnit, windUnit, precipUnit string,
-) *WeatherClient {
+func NewWeatherClient(fc ForecastClient) *WeatherClient {
 	return &WeatherClient{
-		openmateoClient:   fc,
-		temperatureUnit:   tempUnit,
-		windSpeedUnit:     windUnit,
-		precipitationUnit: precipUnit,
+		openmateoClient: fc,
 	}
 }
 
 // GetCurrentWeather fetches the current weather conditions for a given location.
 // This function abstracts away the specific parameters needed by the openmateo API.
-func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*CurrentWeather, error) {
+func (w *WeatherClient) GetCurrentWeather(
+	latitude, longitude float64,
+	tempUnit, windUnit, precipUnit string,
+) (*CurrentWeather, error) {
 	// Define the specific current parameters we want from the Open-Meteo API
 	currentParams := []string{
 		"temperature_2m",
@@ -94,9 +97,9 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 		currentParams,
 		[]string{}, // No hourly data
 		[]string{}, // No daily data
-		w.temperatureUnit,
-		w.windSpeedUnit,
-		w.precipitationUnit,
+		tempUnit,
+		windUnit,
+		precipUnit,
 		0,
 		0,
 	)
@@ -149,6 +152,11 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 		WeatherDescription:  weatherDesc,
 		ObservationTime:     obsTime,
 		IsDay:               forecast.Current.IsDay,
+		Units: Units{
+			Temperature:   forecast.CurrentUnits.Temperature2m,
+			Precipitation: forecast.CurrentUnits.Precipitation,
+			WindSpeed:     forecast.CurrentUnits.WindSpeed10m,
+		},
 	}
 
 	return current, nil
@@ -158,6 +166,7 @@ func (w *WeatherClient) GetCurrentWeather(latitude, longitude float64) (*Current
 func (w *WeatherClient) GetDailyForecast(
 	latitude, longitude float64,
 	numDays int64,
+	tempUnit, windUnit, precipUnit string,
 ) ([]DailyForecast, error) {
 	if numDays < 1 || numDays > 16 { // Open-Meteo typically supports up to 16 days
 		numDays = 1 // Default to 1 day
@@ -181,9 +190,9 @@ func (w *WeatherClient) GetDailyForecast(
 		[]string{}, // No current data
 		[]string{}, // No hourly data
 		dailyParams,
-		w.temperatureUnit,
-		w.windSpeedUnit,
-		w.precipitationUnit,
+		tempUnit,
+		windUnit,
+		precipUnit,
 		0,       // No past days
 		numDays, // Request numDays of forecast
 	)
@@ -227,6 +236,11 @@ func (w *WeatherClient) GetDailyForecast(
 	}
 
 	dailyForecasts := make([]DailyForecast, len(forecast.Daily.Time))
+	units := Units{
+		Temperature:   forecast.DailyUnits.Temperature2mMax,
+		Precipitation: forecast.DailyUnits.PrecipitationSum,
+		WindSpeed:     forecast.DailyUnits.WindSpeed10mMax,
+	}
 
 	for i := range forecast.Daily.Time {
 		forecastDate, err := time.ParseInLocation("2006-01-02", forecast.Daily.Time[i], location)
@@ -234,7 +248,11 @@ func (w *WeatherClient) GetDailyForecast(
 			return nil, fmt.Errorf("failed to parse forecast date: %w", err)
 		}
 
-		sunriseTime, err := time.ParseInLocation(openMeteoLayout, forecast.Daily.Sunrise[i], location)
+		sunriseTime, err := time.ParseInLocation(
+			openMeteoLayout,
+			forecast.Daily.Sunrise[i],
+			location,
+		)
 		if err != nil {
 			sunriseTime, err = time.Parse(time.RFC3339, forecast.Daily.Sunrise[i])
 			if err != nil {
@@ -259,6 +277,7 @@ func (w *WeatherClient) GetDailyForecast(
 			PrecipitationSum:   forecast.Daily.PrecipitationSum[i],
 			PrecipitationProb:  forecast.Daily.PrecipitationProbabilityMean[i],
 			WindGusts:          forecast.Daily.WindSpeed10mMax[i],
+			Units:              units,
 		}
 	}
 

@@ -1,39 +1,10 @@
 package weather
 
 import (
-	"sky/internal/client/openmateo"
 	"testing"
+
+	"sky/internal/client/openmateo"
 )
-
-// mockForecastClient is a mock implementation of the openmateo.ForecastClient
-// for testing purposes.
-type mockForecastClient struct {
-	GetWeatherFunc func(
-		latitude, longitude float64,
-		currentParameters []string,
-		hourlyParameters []string,
-		dailyParameters []string,
-		temperatureUnit string,
-		windSpeedUnit string,
-		precipitationUnit string,
-		pastDays int64,
-		forecastDays int64,
-	) (*openmateo.ForecastResult, error)
-}
-
-func (m *mockForecastClient) GetWeather(
-	latitude, longitude float64,
-	currentParameters []string,
-	hourlyParameters []string,
-	dailyParameters []string,
-	temperatureUnit string,
-	windSpeedUnit string,
-	precipitationUnit string,
-	pastDays int64,
-	forecastDays int64,
-) (*openmateo.ForecastResult, error) {
-	return m.GetWeatherFunc(latitude, longitude, currentParameters, hourlyParameters, dailyParameters, temperatureUnit, windSpeedUnit, precipitationUnit, pastDays, forecastDays)
-}
 
 func TestGetCurrentWeather_Success(t *testing.T) {
 	mockClient := &mockForecastClient{
@@ -50,12 +21,17 @@ func TestGetCurrentWeather_Success(t *testing.T) {
 					WeatherCode:         3,
 					IsDay:               1,
 				},
+				CurrentUnits: &openmateo.ForecastCurrentUnits{
+					Temperature2m: "°C",
+					WindSpeed10m:  "km/h",
+					Precipitation: "mm",
+				},
 			}, nil
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	currentWeather, err := weatherClient.GetCurrentWeather(52.52, 13.41)
+	weatherClient := NewWeatherClient(mockClient)
+	currentWeather, err := weatherClient.GetCurrentWeather(52.52, 13.41, "celsius", "kmh", "mm")
 	if err != nil {
 		t.Fatalf("GetCurrentWeather failed: %v", err)
 	}
@@ -67,7 +43,10 @@ func TestGetCurrentWeather_Success(t *testing.T) {
 		t.Errorf("Expected Humidity to be 80.0, got %f", currentWeather.Humidity)
 	}
 	if currentWeather.ApparentTemperature != 8.0 {
-		t.Errorf("Expected ApparentTemperature to be 8.0, got %f", currentWeather.ApparentTemperature)
+		t.Errorf(
+			"Expected ApparentTemperature to be 8.0, got %f",
+			currentWeather.ApparentTemperature,
+		)
 	}
 	if currentWeather.Precipitation != 0.5 {
 		t.Errorf("Expected Precipitation to be 0.5, got %f", currentWeather.Precipitation)
@@ -76,10 +55,16 @@ func TestGetCurrentWeather_Success(t *testing.T) {
 		t.Errorf("Expected WindSpeed to be 5.0, got %f", currentWeather.WindSpeed)
 	}
 	if currentWeather.WeatherDescription != "Mainly clear, partly cloudy, and overcast" {
-		t.Errorf("Expected WeatherDescription to be 'Mainly clear, partly cloudy, and overcast', got '%s'", currentWeather.WeatherDescription)
+		t.Errorf(
+			"Expected WeatherDescription to be 'Mainly clear, partly cloudy, and overcast', got '%s'",
+			currentWeather.WeatherDescription,
+		)
 	}
 	if currentWeather.IsDay != 1 {
 		t.Errorf("Expected IsDay to be 1, got %d", currentWeather.IsDay)
+	}
+	if currentWeather.Units.Temperature != "°C" {
+		t.Errorf("Expected Temperature unit to be '°C', got '%s'", currentWeather.Units.Temperature)
 	}
 }
 
@@ -92,19 +77,28 @@ func TestGetDailyForecast_Success(t *testing.T) {
 					Time:             []string{"2023-01-01", "2023-01-02"},
 					Temperature2mMax: []float64{12.0, 13.0},
 					Temperature2mMin: []float64{2.0, 3.0},
-					Sunrise:          []string{"2023-01-01T07:00:00Z", "2023-01-02T07:01:00Z"},
-					Sunset:           []string{"2023-01-01T17:00:00Z", "2023-01-02T17:01:00Z"},
-					PrecipitationSum: []float64{0.1, 0.2},
+					Sunrise: []string{
+						"2023-01-01T07:00:00Z",
+						"2023-01-02T07:01:00Z",
+					},
+					Sunset: []string{
+						"2023-01-01T17:00:00Z",
+						"2023-01-02T17:01:00Z",
+					},
+					PrecipitationSum:             []float64{0.1, 0.2},
 					PrecipitationProbabilityMean: []float64{10.0, 20.0},
-					WeatherCode:      []int{3, 1},
-					WindSpeed10mMax:    []float64{15.0, 16.0},
+					WeatherCode:                  []int{3, 1},
+					WindSpeed10mMax:              []float64{15.0, 16.0},
+				},
+				DailyUnits: &openmateo.ForecastDailyUnits{
+					Temperature2mMax: "°C",
 				},
 			}, nil
 		},
 	}
 
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 2)
+	weatherClient := NewWeatherClient(mockClient)
+	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 2, "celsius", "kmh", "mm")
 	if err != nil {
 		t.Fatalf("GetDailyForecast failed: %v", err)
 	}
@@ -119,6 +113,12 @@ func TestGetDailyForecast_Success(t *testing.T) {
 	if dailyForecast[1].MaxTemperature != 13.0 {
 		t.Errorf("Expected MaxTemperature to be 13.0, got %f", dailyForecast[1].MaxTemperature)
 	}
+	if dailyForecast[0].Units.Temperature != "°C" {
+		t.Errorf(
+			"Expected Temperature unit to be '°C', got '%s'",
+			dailyForecast[0].Units.Temperature,
+		)
+	}
 }
 
 func TestGetDailyForecast_NumDaysZero(t *testing.T) {
@@ -130,21 +130,24 @@ func TestGetDailyForecast_NumDaysZero(t *testing.T) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
-					Time:             []string{"2023-01-01"},
-					Temperature2mMax: []float64{12.0},
-					Temperature2mMin: []float64{2.0},
-					Sunrise:          []string{"2023-01-01T07:00:00Z"},
-					Sunset:           []string{"2023-01-01T17:00:00Z"},
-					PrecipitationSum: []float64{0.1},
+					Time:                         []string{"2023-01-01"},
+					Temperature2mMax:             []float64{12.0},
+					Temperature2mMin:             []float64{2.0},
+					Sunrise:                      []string{"2023-01-01T07:00:00Z"},
+					Sunset:                       []string{"2023-01-01T17:00:00Z"},
+					PrecipitationSum:             []float64{0.1},
 					PrecipitationProbabilityMean: []float64{10.0},
-					WeatherCode:      []int{3},
-					WindSpeed10mMax:    []float64{15.0},
+					WeatherCode:                  []int{3},
+					WindSpeed10mMax:              []float64{15.0},
+				},
+				DailyUnits: &openmateo.ForecastDailyUnits{
+					Temperature2mMax: "°C",
 				},
 			}, nil
 		},
 	}
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
-	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 0)
+	weatherClient := NewWeatherClient(mockClient)
+	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 0, "celsius", "kmh", "mm")
 	if err != nil {
 		t.Fatalf("GetDailyForecast with numDays=0 failed: %v", err)
 	}
@@ -166,22 +169,25 @@ func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
-					Time:             []string{"2023-01-01"},
-					Temperature2mMax: []float64{12.0},
-					Temperature2mMin: []float64{2.0},
-					Sunrise:          []string{"2023-01-01T07:00:00Z"},
-					Sunset:           []string{"2023-01-01T17:00:00Z"},
-					PrecipitationSum: []float64{0.1},
+					Time:                         []string{"2023-01-01"},
+					Temperature2mMax:             []float64{12.0},
+					Temperature2mMin:             []float64{2.0},
+					Sunrise:                      []string{"2023-01-01T07:00:00Z"},
+					Sunset:                       []string{"2023-01-01T17:00:00Z"},
+					PrecipitationSum:             []float64{0.1},
 					PrecipitationProbabilityMean: []float64{10.0},
-					WeatherCode:      []int{3},
-					WindSpeed10mMax:    []float64{15.0},
+					WeatherCode:                  []int{3},
+					WindSpeed10mMax:              []float64{15.0},
+				},
+				DailyUnits: &openmateo.ForecastDailyUnits{
+					Temperature2mMax: "°C",
 				},
 			}, nil
 		},
 	}
-	weatherClient := NewWeatherClient(mockClient, "celsius", "kmh", "mm")
+	weatherClient := NewWeatherClient(mockClient)
 
-	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 17)
+	dailyForecast, err := weatherClient.GetDailyForecast(52.52, 13.41, 17, "celsius", "kmh", "mm")
 	if err != nil {
 		t.Fatalf("GetDailyForecast with numDays=17 failed: %v", err)
 	}
@@ -189,10 +195,13 @@ func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 		t.Errorf("Expected 1 daily forecast for numDays=17, got %d", len(dailyForecast))
 	}
 	if dailyForecast[0].MaxTemperature != 12.0 {
-		t.Errorf("Expected MaxTemperature to be 12.0 for numDays=17, got %f", dailyForecast[0].MaxTemperature)
+		t.Errorf(
+			"Expected MaxTemperature to be 12.0 for numDays=17, got %f",
+			dailyForecast[0].MaxTemperature,
+		)
 	}
 
-	dailyForecast, err = weatherClient.GetDailyForecast(52.52, 13.41, -1)
+	dailyForecast, err = weatherClient.GetDailyForecast(52.52, 13.41, -1, "celsius", "kmh", "mm")
 	if err != nil {
 		t.Fatalf("GetDailyForecast with numDays=-1 failed: %v", err)
 	}
@@ -200,6 +209,9 @@ func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 		t.Errorf("Expected 1 daily forecast for numDays=-1, got %d", len(dailyForecast))
 	}
 	if dailyForecast[0].MaxTemperature != 12.0 {
-		t.Errorf("Expected MaxTemperature to be 12.0 for numDays=-1, got %f", dailyForecast[0].MaxTemperature)
+		t.Errorf(
+			"Expected MaxTemperature to be 12.0 for numDays=-1, got %f",
+			dailyForecast[0].MaxTemperature,
+		)
 	}
 }
