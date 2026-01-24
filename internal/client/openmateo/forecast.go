@@ -20,6 +20,8 @@ func (fc *ForecastClient) GetWeather(
 	precipitationUnit string,
 	pastDays int64,
 	forecastDays int64,
+	pastHours int64,
+	forecastHours int64,
 ) (*ForecastResult, error) {
 	params := url.Values{}
 	params.Add("latitude", fmt.Sprintf("%f", latitude))
@@ -64,6 +66,14 @@ func (fc *ForecastClient) GetWeather(
 
 	if forecastDays >= 0 {
 		params.Set("forecast_days", strconv.FormatInt(forecastDays, 10))
+	}
+
+	if pastHours > 0 {
+		params.Set("past_hours", strconv.FormatInt(pastHours, 10))
+	}
+
+	if forecastHours > 0 {
+		params.Set("forecast_hours", strconv.FormatInt(forecastHours, 10))
 	}
 
 	fullURL := fc.BaseURL + "forecast?" + params.Encode()

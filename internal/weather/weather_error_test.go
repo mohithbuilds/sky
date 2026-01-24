@@ -18,6 +18,8 @@ type mockForecastClient struct {
 		precipitationUnit string,
 		pastDays int64,
 		forecastDays int64,
+		pastHours int64,
+		forecastHours int64,
 	) (*openmateo.ForecastResult, error)
 }
 
@@ -32,6 +34,8 @@ func (m *mockForecastClient) GetWeather(
 	precipitationUnit string,
 	pastDays int64,
 	forecastDays int64,
+	pastHours int64,
+	forecastHours int64,
 ) (*openmateo.ForecastResult, error) {
 	if m.GetWeatherFunc != nil {
 		return m.GetWeatherFunc(
@@ -45,6 +49,8 @@ func (m *mockForecastClient) GetWeather(
 			precipitationUnit,
 			pastDays,
 			forecastDays,
+			pastHours,
+			forecastHours,
 		)
 	}
 	return nil, errors.New("GetWeatherFunc is not implemented")
@@ -52,7 +58,7 @@ func (m *mockForecastClient) GetWeather(
 
 func TestGetCurrentWeather_NilCurrent(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Current: nil,
 			}, nil
@@ -68,7 +74,7 @@ func TestGetCurrentWeather_NilCurrent(t *testing.T) {
 
 func TestGetCurrentWeather_TimeParseError(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Current: &openmateo.ForecastCurrent{
@@ -88,7 +94,7 @@ func TestGetCurrentWeather_TimeParseError(t *testing.T) {
 
 func TestGetDailyForecast_NilDaily(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Daily: nil,
 			}, nil
@@ -104,7 +110,7 @@ func TestGetDailyForecast_NilDaily(t *testing.T) {
 
 func TestGetDailyForecast_TimeParseError(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
@@ -132,7 +138,7 @@ func TestGetDailyForecast_TimeParseError(t *testing.T) {
 
 func TestGetDailyForecast_IncompleteData(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Daily: &openmateo.ForecastDaily{
 					Time:             []string{"2023-01-01"},
@@ -150,7 +156,7 @@ func TestGetDailyForecast_IncompleteData(t *testing.T) {
 
 func TestGetDailyForecast_APIError(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return nil, errors.New("API error")
 		},
 	}
@@ -163,7 +169,7 @@ func TestGetDailyForecast_APIError(t *testing.T) {
 
 func TestGetDailyForecast_InconsistentLengths(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Daily: &openmateo.ForecastDaily{
 					Time:                         []string{"2023-01-01"},
