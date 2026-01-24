@@ -8,7 +8,7 @@ import (
 
 func TestGetCurrentWeather_Success(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Current: &openmateo.ForecastCurrent{
@@ -70,7 +70,7 @@ func TestGetCurrentWeather_Success(t *testing.T) {
 
 func TestGetDailyForecast_Success(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			return &openmateo.ForecastResult{
 				Timezone: "UTC",
 				Daily: &openmateo.ForecastDaily{
@@ -123,7 +123,7 @@ func TestGetDailyForecast_Success(t *testing.T) {
 
 func TestGetDailyForecast_NumDaysZero(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			if forecastDays != 1 {
 				t.Errorf("Expected forecastDays to be 1, got %d", forecastDays)
 			}
@@ -162,7 +162,7 @@ func TestGetDailyForecast_NumDaysZero(t *testing.T) {
 
 func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 	mockClient := &mockForecastClient{
-		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays int64) (*openmateo.ForecastResult, error) {
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
 			if forecastDays != 1 {
 				t.Errorf("Expected forecastDays to be 1, got %d", forecastDays)
 			}
@@ -212,6 +212,57 @@ func TestGetDailyForecast_NumDaysOutOfRange(t *testing.T) {
 		t.Errorf(
 			"Expected MaxTemperature to be 12.0 for numDays=-1, got %f",
 			dailyForecast[0].MaxTemperature,
+		)
+	}
+}
+
+func TestGetHourlyForecast_Success(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return &openmateo.ForecastResult{
+				Timezone: "UTC",
+				Hourly: &openmateo.ForecastHourly{
+					Time:                []string{"2023-01-01T12:00:00Z", "2023-01-01T13:00:00Z"},
+					Temperature2m:       []float64{10.0, 11.0},
+					RelativeHumidity2m:  []float64{80.0, 81.0},
+					ApparentTemperature: []float64{8.0, 9.0},
+					CloudCover:          []float64{50.0, 55.0},
+					WindSpeed10m:        []float64{5.0, 6.0},
+					Precipitation:       []float64{0.5, 0.6},
+					Snowfall:            []float64{0.0, 0.0},
+					PrecipitationProbability: []float64{10.0, 15.0},
+					WeatherCode:         []int{3, 1},
+					IsDay:               []int{1, 1},
+				},
+				HourlyUnits: &openmateo.ForecastHourlyUnits{
+					Temperature2m: "°C",
+					WindSpeed10m:  "km/h",
+					Precipitation: "mm",
+				},
+			}, nil
+		},
+	}
+
+	weatherClient := NewWeatherClient(mockClient)
+	hourlyForecast, err := weatherClient.GetHourlyForecast(52.52, 13.41, 2, "celsius", "kmh", "mm")
+	if err != nil {
+		t.Fatalf("GetHourlyForecast failed: %v", err)
+	}
+
+	if len(hourlyForecast) != 2 {
+		t.Fatalf("Expected 2 hourly forecasts, got %d", len(hourlyForecast))
+	}
+
+	if hourlyForecast[0].Temperature != 10.0 {
+		t.Errorf("Expected Temperature to be 10.0, got %f", hourlyForecast[0].Temperature)
+	}
+	if hourlyForecast[1].Temperature != 11.0 {
+		t.Errorf("Expected Temperature to be 11.0, got %f", hourlyForecast[1].Temperature)
+	}
+	if hourlyForecast[0].Units.Temperature != "°C" {
+		t.Errorf(
+			"Expected Temperature unit to be '°C', got '%s'",
+			hourlyForecast[0].Units.Temperature,
 		)
 	}
 }

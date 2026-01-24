@@ -38,6 +38,12 @@ func TestGetWeather_Success(t *testing.T) {
 				r.URL.Query().Get("daily"),
 			)
 		}
+		if r.URL.Query().Get("past_hours") != "2" {
+			t.Errorf("Expected past_hours to be '2', got '%s'", r.URL.Query().Get("past_hours"))
+		}
+		if r.URL.Query().Get("forecast_hours") != "4" {
+			t.Errorf("Expected forecast_hours to be '4', got '%s'", r.URL.Query().Get("forecast_hours"))
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = fmt.Fprintln(w, `{
 			"latitude": 52.52,
@@ -79,6 +85,8 @@ func TestGetWeather_Success(t *testing.T) {
 		"mm",
 		0,
 		0,
+		2,
+		4,
 	)
 	if err != nil {
 		t.Fatalf("GetWeather failed: %v", err)
@@ -149,7 +157,7 @@ func TestGetWeather_APIError(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
+	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0, 0, 0)
 	if err == nil {
 		t.Fatalf("expected GetWeather to return an error for API 500 response, got nil")
 	}
@@ -170,7 +178,7 @@ func TestGetWeather_MalformedJSON(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
+	_, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0, 0, 0)
 	if err == nil {
 		t.Fatal("Expected an error for malformed JSON, but got nil")
 	}
@@ -206,7 +214,7 @@ func TestGetWeather_NoParameters(t *testing.T) {
 	client := NewForecastClient(server.Client())
 	client.BaseURL = server.URL + "/"
 
-	result, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0)
+	result, err := client.GetWeather(52.52, 13.41, []string{}, []string{}, []string{}, "celsius", "kmh", "mm", 0, 0, 0, 0)
 	if err != nil {
 		t.Fatalf("GetWeather with no parameters failed: %v", err)
 	}
