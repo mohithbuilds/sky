@@ -191,3 +191,107 @@ func TestGetDailyForecast_InconsistentLengths(t *testing.T) {
 		t.Fatal("Expected an error for inconsistent daily data lengths, but got nil")
 	}
 }
+
+func TestGetHourlyForecast_NilHourly(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return &openmateo.ForecastResult{
+				Hourly: nil,
+			}, nil
+		},
+	}
+
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetHourlyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
+	if err == nil {
+		t.Fatal("Expected an error for nil hourly weather data, but got nil")
+	}
+}
+
+func TestGetHourlyForecast_TimeParseError(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return &openmateo.ForecastResult{
+				Timezone: "UTC",
+				Hourly: &openmateo.ForecastHourly{
+					Time:                []string{"invalid-time"},
+					Temperature2m:       []float64{10.0},
+					RelativeHumidity2m:  []float64{80.0},
+					ApparentTemperature: []float64{8.0},
+					CloudCover:          []float64{50.0},
+					WindSpeed10m:        []float64{5.0},
+					Precipitation:       []float64{0.5},
+					Snowfall:            []float64{0.0},
+					PrecipitationProbability: []float64{10.0},
+					WeatherCode:         []int{3},
+					IsDay:               []int{1},
+				},
+				HourlyUnits: &openmateo.ForecastHourlyUnits{},
+			}, nil
+		},
+	}
+
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetHourlyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
+	if err == nil {
+		t.Fatal("Expected an error for invalid hourly time format, but got nil")
+	}
+}
+
+func TestGetHourlyForecast_IncompleteData(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return &openmateo.ForecastResult{
+				Hourly: &openmateo.ForecastHourly{
+					Time:          []string{"2023-01-01T12:00:00Z"},
+					Temperature2m: nil, // Incomplete data
+				},
+			}, nil
+		},
+	}
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetHourlyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
+	if err == nil {
+		t.Fatal("Expected an error for incomplete hourly data, but got nil")
+	}
+}
+
+func TestGetHourlyForecast_APIError(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return nil, errors.New("API error")
+		},
+	}
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetHourlyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
+	if err == nil {
+		t.Fatal("Expected an error for API error, but got nil")
+	}
+}
+
+func TestGetHourlyForecast_InconsistentLengths(t *testing.T) {
+	mockClient := &mockForecastClient{
+		GetWeatherFunc: func(latitude, longitude float64, currentParameters, hourlyParameters, dailyParameters []string, temperatureUnit, windSpeedUnit, precipitationUnit string, pastDays, forecastDays, pastHours, forecastHours int64) (*openmateo.ForecastResult, error) {
+			return &openmateo.ForecastResult{
+				Hourly: &openmateo.ForecastHourly{
+					Time:                []string{"2023-01-01T12:00:00Z"},
+					Temperature2m:       []float64{10.0, 11.0}, // Inconsistent length
+					RelativeHumidity2m:  []float64{80.0},
+					ApparentTemperature: []float64{8.0},
+					CloudCover:          []float64{50.0},
+					WindSpeed10m:        []float64{5.0},
+					Precipitation:       []float64{0.5},
+					Snowfall:            []float64{0.0},
+					PrecipitationProbability: []float64{10.0},
+					WeatherCode:         []int{3},
+					IsDay:               []int{1},
+				},
+			}, nil
+		},
+	}
+	weatherClient := NewWeatherClient(mockClient)
+	_, err := weatherClient.GetHourlyForecast(52.52, 13.41, 1, "celsius", "kmh", "mm")
+	if err == nil {
+		t.Fatal("Expected an error for inconsistent hourly data lengths, but got nil")
+	}
+}
